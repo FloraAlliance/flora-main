@@ -94,7 +94,7 @@
                 <div class="detail-icon" title="Адрес получения"></div>
                 <div class="detail-text">
                   <p class="detail-label">Адрес получения</p>
-                  <p class="detail-value">г.Курск, пр-кт. Кулакова, Д-1-В</p>
+                  <p class="detail-value">г.Курск, с. Рышково, ул. Парашютная, зд. 1.</p>
                 </div>
               </div>
               <div class="detail-item">
