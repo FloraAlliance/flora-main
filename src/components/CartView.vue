@@ -137,7 +137,7 @@ import axios from 'axios'
 const store = useStore()
 const showOrderCode = ref(false)
 const orderCode = ref('')
-const baseUrl = 'http://localhost:8000'
+const baseUrl = 'https://floraalliance.pythonanywhere.com'
 
 const cartItems = computed(() => store.state.cart.items)
 const totalPrice = computed(() => store.getters['cart/totalPrice'])

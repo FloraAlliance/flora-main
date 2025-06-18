@@ -96,7 +96,7 @@ import axios from 'axios'
 const orders = ref([])
 const isLoading = ref(true)
 const error = ref(null)
-const baseUrl = 'http://localhost:8000'
+const baseUrl = 'https://floraalliance.pythonanywhere.com'
 
 const fetchOrders = async () => {
   try {

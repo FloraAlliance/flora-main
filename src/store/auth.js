@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Функция для создания экземпляра API
   const createApiClient = () => {
     const instance = axios.create({
-      baseURL: 'http://localhost:8000/api/',
+      baseURL: 'https://floraalliance.pythonanywhere.com/api/',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken.value}`
@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
           originalRequest._retry = true
           
           try {
-            const response = await axios.post('http://localhost:8000/api/auth/refresh/', {
+            const response = await axios.post('https://floraalliance.pythonanywhere.com/api/auth/refresh/', {
               refresh: refreshToken.value
             })
             
@@ -69,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Создаем базовый экземпляр axios с настройками по умолчанию
   const baseAxios = axios.create({
-    baseURL: 'http://localhost:8000/api/',
+    baseURL: 'https://floraalliance.pythonanywhere.com/api/',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
@@ -130,7 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
       
       if (!err.response) {
-        throw new Error('Не удалось подключиться к серверу. Проверьте, запущен ли сервер и доступен ли он по адресу http://localhost:8000')
+        throw new Error('Не удалось подключиться к серверу. Проверьте, запущен ли сервер и доступен ли он по адресу https://floraalliance.pythonanywhere.com')
       } else if (err.response.status === 401) {
         if (err.response.data?.detail) {
           throw new Error(err.response.data.detail)
@@ -144,7 +144,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function register(userData) {
-    const response = await axios.post('http://localhost:8000/api/auth/register/', userData)
+    const response = await axios.post('https://floraalliance.pythonanywhere.com/api/auth/register/', userData)
     
     accessToken.value = response.data.access
     refreshToken.value = response.data.refresh
@@ -170,7 +170,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const api = axios.create({ baseURL: 'http://localhost:8000/api/' })
+      const api = axios.create({ baseURL: 'https://floraalliance.pythonanywhere.com/api/' })
       await api.post('auth/logout/', {
         refresh_token: refreshToken.value
       })

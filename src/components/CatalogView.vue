@@ -93,7 +93,7 @@
   const products = ref([])
   const isLoading = ref(true)
   const error = ref(null)
-  const baseUrl = 'http://localhost:8000'
+  const baseUrl = 'https://floraalliance.pythonanywhere.com'
   const visibleProductIds = ref([])
   
   const categoryId = computed(() => parseInt(route.params.categoryId))

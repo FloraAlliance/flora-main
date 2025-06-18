@@ -48,7 +48,7 @@ import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
-const baseUrl = 'http://localhost:8000'
+const baseUrl = 'https://floraalliance.pythonanywhere.com'
 
 // Реактивные данные
 const products = ref([])

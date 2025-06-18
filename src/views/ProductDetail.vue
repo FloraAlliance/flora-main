@@ -86,7 +86,7 @@
   const isLoading = ref(true)
   const error = ref(null)
   const mainImage = ref(null)
-  const baseUrl = 'http://localhost:8000'
+  const baseUrl = 'https://floraalliance.pythonanywhere.com'
   
   const fetchProduct = async () => {
     try {

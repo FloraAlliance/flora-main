@@ -162,7 +162,7 @@ const authStore = useAuthStore()
 const user = ref(null)
 const isLoading = ref(false)
 const showLogoutConfirm = ref(false)
-const baseUrl = 'http://localhost:8000'
+const baseUrl = 'https://floraalliance.pythonanywhere.com'
 const currentTab = ref('pending')
 
 // Вспомогательные функции для UI
@@ -233,7 +233,7 @@ const getStatusText = (status) => {
 onMounted(async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://localhost:8000/api/auth/user/', {
+    const response = await axios.get('https://floraalliance.pythonanywhere.com/api/auth/user/', {
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
