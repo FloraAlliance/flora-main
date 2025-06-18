@@ -1,0 +1,230 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter()
+  const accessToken = ref(localStorage.getItem('access_token'))
+  const refreshToken = ref(localStorage.getItem('refresh_token'))
+  const userRole = ref(localStorage.getItem('user_role'))
+  const currentUser = ref(JSON.parse(localStorage.getItem('user_data') || 'null'))
+
+  // 1. ДОБАВЛЕН REF ДЛЯ ХРАНЕНИЯ СООБЩЕНИЯ
+  const logoutMessage = ref(null)
+
+  const isAuthenticated = computed(() => !!accessToken.value)
+  const isAdmin = computed(() => userRole.value === 'admin')
+
+  // Функция для создания экземпляра API
+  const createApiClient = () => {
+    const instance = axios.create({
+      baseURL: 'http://localhost:8000/api/',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken.value}`
+      }
+    })
+
+    // Интерцептор для обработки 401 ошибки и refresh токена
+    instance.interceptors.response.use(
+      response => response,
+      async error => {
+        const originalRequest = error.config
+        
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true
+          
+          try {
+            const response = await axios.post('http://localhost:8000/api/auth/refresh/', {
+              refresh: refreshToken.value
+            })
+            
+            accessToken.value = response.data.access
+            localStorage.setItem('access_token', accessToken.value)
+            originalRequest.headers.Authorization = `Bearer ${accessToken.value}`
+            
+            return instance(originalRequest)
+          } catch (refreshError) {
+            // 2. ИЗМЕНЕНИЕ: ПЕРЕДАЕМ СООБЩЕНИЕ В LOGOUT
+            await logout('Простите, сессия истекла или сервер был перезапущен. Пожалуйста, войдите снова.')
+            return Promise.reject(refreshError)
+          }
+        }
+        
+        return Promise.reject(error)
+      }
+    )
+    
+    return instance
+  }
+
+  // Метод для получения API клиента
+  const getApiClient = () => {
+    if (!accessToken.value) {
+      throw new Error('Not authenticated')
+    }
+    return createApiClient()
+  }
+
+  // Создаем базовый экземпляр axios с настройками по умолчанию
+  const baseAxios = axios.create({
+    baseURL: 'http://localhost:8000/api/',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  })
+
+  async function login(userData) {
+    try {
+      console.log('Подготовка к входу...')
+      console.log('Отправляемые данные:', {
+        username: userData.username,
+        password: '***' // Не логируем пароль
+      })
+      
+      // Используем baseAxios для запроса
+      const response = await baseAxios.post('auth/login/', userData)
+      console.log('Успешный ответ сервера:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        data: response.data
+      })
+      
+      if (!response.data.access || !response.data.refresh) {
+        throw new Error('Сервер не вернул токены доступа')
+      }
+      
+      accessToken.value = response.data.access
+      refreshToken.value = response.data.refresh
+      userRole.value = response.data.role
+      
+      localStorage.setItem('access_token', accessToken.value)
+      localStorage.setItem('refresh_token', refreshToken.value)
+      localStorage.setItem('user_role', userRole.value)
+      
+      console.log('Токены сохранены, получение данных пользователя...')
+      const api = getApiClient()
+      const userResponse = await api.get('auth/user/')
+      console.log('Данные пользователя получены:', userResponse.data)
+      
+      currentUser.value = userResponse.data
+      localStorage.setItem('user_data', JSON.stringify(userResponse.data))
+      
+      router.push('/about')
+    } catch (err) {
+      console.error('Подробная информация об ошибке:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        headers: err.response?.headers,
+        config: {
+          url: err.config?.url,
+          method: err.config?.method,
+          headers: err.config?.headers,
+          data: err.config?.data ? JSON.parse(err.config.data) : null
+        }
+      })
+      
+      if (!err.response) {
+        throw new Error('Не удалось подключиться к серверу. Проверьте, запущен ли сервер и доступен ли он по адресу http://localhost:8000')
+      } else if (err.response.status === 401) {
+        if (err.response.data?.detail) {
+          throw new Error(err.response.data.detail)
+        } else {
+          throw new Error('Неверное имя пользователя или пароль')
+        }
+      } else {
+        throw new Error(`Ошибка сервера: ${err.response.status} ${err.response.statusText}`)
+      }
+    }
+  }
+
+  async function register(userData) {
+    const response = await axios.post('http://localhost:8000/api/auth/register/', userData)
+    
+    accessToken.value = response.data.access
+    refreshToken.value = response.data.refresh
+    userRole.value = response.data.role
+    
+    localStorage.setItem('access_token', accessToken.value)
+    localStorage.setItem('refresh_token', refreshToken.value)
+    localStorage.setItem('user_role', userRole.value)
+    
+    const api = getApiClient()
+    const userResponse = await api.get('auth/user/')
+    
+    currentUser.value = userResponse.data
+    localStorage.setItem('user_data', JSON.stringify(userResponse.data))
+    
+    router.push('/')
+  }
+
+  // 3. ОБНОВЛЕННАЯ ФУНКЦИЯ LOGOUT
+  async function logout(message = null) {
+    if (message) {
+      logoutMessage.value = message
+    }
+
+    try {
+      const api = axios.create({ baseURL: 'http://localhost:8000/api/' })
+      await api.post('auth/logout/', {
+        refresh_token: refreshToken.value
+      })
+    } catch (error) {
+      console.error('Ошибка при выходе (возможно, токен уже недействителен):', error)
+    } finally {
+      accessToken.value = null
+      refreshToken.value = null
+      userRole.value = null
+      currentUser.value = null
+      
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user_role')
+      localStorage.removeItem('user_data')
+      
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login')
+      }
+    }
+  }
+
+  async function fetchUserData() {
+    if (!isAuthenticated.value) return
+    
+    try {
+      const api = getApiClient()
+      const response = await api.get('auth/user/')
+      currentUser.value = response.data
+      localStorage.setItem('user_data', JSON.stringify(response.data))
+    } catch (error) {
+      console.error('Ошибка загрузки данных пользователя:', error)
+    }
+  }
+
+  // 4. ДОБАВЛЕНА ФУНКЦИЯ ОЧИСТКИ СООБЩЕНИЯ
+  function clearLogoutMessage() {
+    logoutMessage.value = null
+  }
+
+  // 5. ДОБАВЛЕНЫ НОВЫЕ ЭЛЕМЕНТЫ В RETURN
+  return { 
+    accessToken,
+    refreshToken,
+    userRole,
+    currentUser,
+    isAuthenticated,
+    isAdmin,
+    login,
+    register,
+    logout,
+    fetchUserData,
+    getApiClient,
+    logoutMessage,
+    clearLogoutMessage,
+  }
+})

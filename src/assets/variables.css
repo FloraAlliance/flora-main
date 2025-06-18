@@ -1,0 +1,32 @@
+:root {
+  /* Основные цвета */
+  --primary-color: #EBF9E0;      /* Светлый мятный */
+  --secondary-color: #2C763B;    /* Темно-зеленый */
+  --accent-color: #D75480;       /* Розовый */
+  --neutral-color: #dff6be;      /* Нежно-зеленый */
+
+  /* Текстовые цвета */
+  --text-light: #FFFFFF;         /* Белый текст */
+  --text-dark: #333333;          /* Темный текст */
+  --text-muted: #666666;         /* Приглушенный текст */
+
+  /* Фоновые цвета */
+  --bg-primary: var(--primary-color);
+  --bg-secondary: var(--secondary-color);
+  --bg-accent: var(--accent-color);
+  --bg-neutral: var(--neutral-color);
+
+  /* Цвета состояний */
+  --hover-primary: #d9e8d0;      /* Светлее primary */
+  --hover-secondary: #1f5429;    /* Темнее secondary */
+  --hover-accent: #c44670;       /* Темнее accent */
+
+  /* Цвета границ */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(0, 0, 0, 0.1);
+
+  /* Тени */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+} 

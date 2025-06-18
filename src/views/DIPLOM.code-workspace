@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"name": "flora_api",
+			"path": "../../flora_api"
+		}
+	],
+	"settings": {}
+}
